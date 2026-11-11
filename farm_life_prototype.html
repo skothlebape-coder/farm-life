@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FARM LIFE — прототип</title>
+<style>
+:root{--bg:#101712;--panel:#1b2920;--line:#344a38;--cream:#f3edda;--muted:#b6c5ad;--green:#9bd17c;--gold:#f1c66d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#263b2a,#101712 65%);color:var(--cream);font:15px system-ui,Segoe UI,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #354735;background:#111b15dd;position:sticky;top:0;z-index:2}
+.logo{font-weight:900;letter-spacing:3px;color:var(--green);font-size:20px}.stats{display:flex;gap:10px;flex-wrap:wrap}.pill{background:#243629;border:1px solid var(--line);border-radius:20px;padding:7px 12px}
+main{max-width:1200px;margin:18px auto;padding:0 14px;display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px}
+.panel{background:#1a281f;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 35px #0004;overflow:hidden}
+.panel h2{font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0;padding:14px 16px;border-bottom:1px solid var(--line)}
+.world{padding:12px}.worldtop{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 5px 12px;color:var(--muted);font-size:13px}
+canvas{display:block;width:100%;max-height:650px;aspect-ratio:1.25;background:#7da66b;border-radius:12px;image-rendering:pixelated;touch-action:none}
+.controls{display:flex;gap:7px;flex-wrap:wrap;padding:12px 4px 2px}.btn{border:1px solid #4b684b;background:#293e2d;color:var(--cream);border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:650}.btn:hover{background:#38553b}.btn.active{background:#527b46;border-color:#a6d487}.btn:disabled{opacity:.4;cursor:not-allowed}
+.side{display:flex;flex-direction:column;gap:14px}.content{padding:14px}.big{font-size:25px;font-weight:850;color:var(--gold)}.muted{color:var(--muted);font-size:13px;line-height:1.45}.item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #304234}.item:last-child{border:0}.tag{font-size:12px;color:var(--muted)}.log{height:128px;overflow:auto;font-size:13px;color:var(--muted);line-height:1.55}.task{padding:9px 0;border-bottom:1px solid #304234}.bar{height:7px;background:#314333;border-radius:9px;overflow:hidden;margin-top:7px}.bar i{display:block;height:100%;background:var(--green);width:40%}
+footer{text-align:center;color:#849582;font-size:12px;padding:0 15px 20px}
+@media(max-width:800px){main{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.side .panel:last-child{grid-column:1/-1}}
+@media(max-width:520px){header{align-items:flex-start;gap:8px;flex-direction:column}.side{display:flex}.worldtop{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header><div class="logo">🌱 FARM LIFE</div><div class="stats"><span class="pill">🪙 <b id="coins">120</b></span><span class="pill">⭐ Уровень <b id="level">1</b></span><span class="pill">📅 День <b id="day">1</b></span></div></header>
+<main>
+<section class="panel">
+<h2>Твоя ферма · Участок №001</h2><div class="world">
+<div class="worldtop"><span>Выбери инструмент и нажми на клетку</span><span>WASD / стрелки — движение персонажа</span></div>
+<canvas id="farm" width="800" height="640"></canvas>
+<div class="controls" id="tools">
+<button class="btn active" data-tool="hoe">⛏️ Вспахать</button><button class="btn" data-tool="seed">🌱 Посадить</button><button class="btn" data-tool="water">💧 Полить</button><button class="btn" data-tool="harvest">🧺 Собрать</button><button class="btn" data-tool="move">🚶 Персонаж</button>
+<button class="btn" id="nextDay">🌙 Следующий день</button>
+</div>
+<div class="muted" style="padding:10px 4px 0">Подсказка: вспаши землю → посади семена → поливай → переходи на следующий день. Созревший урожай можно продать на рынке.</div>
+</div></section>
+<aside class="side">
+<section class="panel"><h2>Семена и постройки</h2><div class="content">
+<div class="item"><span>🥕 Семена моркови <span class="tag">3 дня</span></span><button class="btn" id="buySeed">Купить · 10🪙</button></div>
+<div class="item"><span>🐔 Курятник <span class="tag">пассивный доход</span></span><button class="btn" id="buyCoop">80🪙</button></div>
+<div class="item"><span>🐄 Сарай <span class="tag">животные — скоро</span></span><button class="btn" disabled>120🪙</button></div>
+<div class="item"><span>🚜 Трактор <span class="tag">ускорение — скоро</span></span><button class="btn" disabled>250🪙</button></div>
+<p class="muted" id="inventory">В инвентаре: 2 семени</p>
+</div></section>
+<section class="panel"><h2>Рынок</h2><div class="content">
+<div class="item"><span>🥕 Морковь</span><b>18🪙</b></div><div class="item"><span>🥚 Яйцо</span><b>8🪙</b></div>
+<p class="muted">Цены условные для прототипа. В полной версии рынок будет общим для игроков.</p>
+<button class="btn" id="sellAll">Продать весь урожай</button><p class="muted" id="harvestCount">Урожай: 0</p>
+</div></section>
+<section class="panel"><h2>Задания дня</h2><div class="content">
+<div class="task">🌱 Посади 3 семени<div class="bar"><i id="taskbar"></i></div><span class="tag" id="tasktext">0 / 3</span></div>
+<div class="task">🧺 Собери первый урожай</div>
+<div class="task">🏆 Попади в рейтинг фермеров</div>
+</div></section>
+<section class="panel"><h2>Журнал фермы</h2><div class="content log" id="log">День 1 — добро пожаловать на ферму!<br>Твой участок ждёт первых посадок.</div></section>
+</aside>
+</main>
+<footer>FARM LIFE · ранний игровой прототип · прогресс хранится в этом браузере</footer>
+<script>
+const c=document.getElementById('farm'),ctx=c.getContext('2d');
+const N=10, cell=58, ox=105, oy=30;
+let coins=120,day=1,seeds=2,harvest=0,level=1,coop=false,tool='hoe',player={x:4,y:7},plots={},planted=0;
+const key=(x,y)=>x+','+y;
+function log(t){let el=document.getElementById('log');el.innerHTML='День '+day+' — '+t+'<br>'+el.innerHTML}
+function update(){document.getElementById('coins').textContent=coins;document.getElementById('day').textContent=day;document.getElementById('level').textContent=level;document.getElementById('inventory').textContent='В инвентаре: '+seeds+' семени';document.getElementById('harvestCount').textContent='Урожай: '+harvest;document.getElementById('tasktext').textContent=Math.min(planted,3)+' / 3';document.getElementById('taskbar').style.width=Math.min(planted/3*100,100)+'%'}
+function draw(){
+ ctx.clearRect(0,0,c.width,c.height);
+ // grass tiles
+ for(let y=0;y<N;y++)for(let x=0;x<N;x++){let px=ox+x*cell,py=oy+y*cell;ctx.fillStyle=(x+y)%2?'#83ad70':'#8db879';ctx.fillRect(px,py,cell,cell);ctx.strokeStyle='#719b62';ctx.strokeRect(px,py,cell,cell);
+ if((x===0||x===9||y===0||y===9)&&!(x===0&&y===5)){ctx.fillStyle='#54834f';ctx.fillRect(px+4,py+4,cell-8,cell-8);ctx.fillStyle='#9dc47b';ctx.fillRect(px+10,py+8,5,5)}
+ }
+ // path
+ for(let x=2;x<8;x++){ctx.fillStyle='#c4a878';ctx.fillRect(ox+x*cell,oy+8*cell,cell,cell)}
+ // pond
+ ctx.fillStyle='#4d9ca0';ctx.fillRect(ox+7*cell,oy,cell*2,cell*2);ctx.fillStyle='#77c4bd';ctx.fillRect(ox+7*cell+8,oy+12,35,5);
+ // house and barn
+ ctx.fillStyle='#ead8a8';ctx.fillRect(ox+cell*1.0,oy+cell*1.1,cell*1.8,cell*1.35);ctx.fillStyle='#a65345';ctx.beginPath();ctx.moveTo(ox+cell*.8,oy+cell*1.15);ctx.lineTo(ox+cell*1.9,oy+cell*.35);ctx.lineTo(ox+cell*3,oy+cell*1.15);ctx.fill();ctx.fillStyle='#754d35';ctx.fillRect(ox+cell*1.65,oy+cell*1.65,24,45);
+ ctx.fillStyle='#d8c18b';ctx.fillRect(ox+cell*5.7,oy+cell*1.2,cell*1.1,cell*1.1);ctx.fillStyle='#984d3f';ctx.beginPath();ctx.moveTo(ox+cell*5.5,oy+cell*1.2);ctx.lineTo(ox+cell*6.25,oy+cell*.55);ctx.lineTo(ox+cell*7,oy+cell*1.2);ctx.fill();ctx.fillStyle='#744b36';ctx.fillRect(ox+cell*6,oy+cell*1.65,25,38);
+ // crops
+ for(let k in plots){let [x,y]=k.split(',').map(Number),p=plots[k],px=ox+x*cell,py=oy+y*cell;ctx.fillStyle='#795b39';ctx.fillRect(px+4,py+4,cell-8,cell-8);ctx.strokeStyle='#a88355';for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(px+9,py+15+i*14);ctx.lineTo(px+cell-9,py+15+i*14);ctx.stroke()}
+ if(p.seed){ctx.fillStyle=p.ready?'#e9a83c':'#4d9a48';for(let i=0;i<(p.ready?4:Math.max(1,p.growth+1));i++){ctx.beginPath();ctx.ellipse(px+18+i*9,py+30,5,10,-.4,0,Math.PI*2);ctx.fill()}if(p.ready){ctx.fillStyle='#f5d16a';ctx.font='20px sans-serif';ctx.fillText('🥕',px+17,py+28)}}
+ if(p.watered){ctx.fillStyle='#80c9e8';ctx.beginPath();ctx.arc(px+cell-12,py+12,4,0,Math.PI*2);ctx.fill()}
+ }
+ // player
+ let px=ox+player.x*cell+cell/2,py=oy+player.y*cell+cell/2;ctx.fillStyle='#344a9a';ctx.beginPath();ctx.arc(px,py+5,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f0c69a';ctx.beginPath();ctx.arc(px,py-11,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#4a3325';ctx.fillRect(px-9,py-21,18,6);
+ // selection
+ ctx.strokeStyle='#fff3a4';ctx.lineWidth=3;ctx.strokeRect(ox+player.x*cell+2,oy+player.y*cell+2,cell-4,cell-4);ctx.lineWidth=1;
+}
+function act(x,y){if(x<0||x>=N||y<0||y>=N)return;let k=key(x,y),p=plots[k];if(tool==='move'){player={x,y};draw();return}
+ if(tool==='hoe'){if(!p){plots[k]={seed:false,growth:0,watered:false};log('земля вспахана')}else log('здесь уже подготовлена грядка')}
+ if(tool==='seed'){if(!p){log('сначала вспаши землю');return}if(p.seed){log('здесь уже что-то растёт');return}if(seeds<1){log('не хватает семян');return}p.seed=true;seeds--;planted++;log('семена посажены');}
+ if(tool==='water'){if(!p||!p.seed){log('здесь нечего поливать');return}p.watered=true;log('грядка полита')}
+ if(tool==='harvest'){if(!p||!p.ready){log('урожай ещё не созрел');return}harvest++;delete plots[k];log('морковь собрана')}
+ update();draw()
+}
+c.addEventListener('click',e=>{let r=c.getBoundingClientRect(),x=Math.floor(((e.clientX-r.left)*c.width/r.width-ox)/cell),y=Math.floor(((e.clientY-r.top)*c.height/r.height-oy)/cell);act(x,y)});
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{tool=b.dataset.tool;document.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b))});
+document.getElementById('buySeed').onclick=()=>{if(coins<10)return log('не хватает монет');coins-=10;seeds++;update();log('куплены семена моркови')};
+document.getElementById('buyCoop').onclick=()=>{if(coop)return log('курятник уже построен');if(coins<80)return log('не хватает монет');coins-=80;coop=true;document.getElementById('buyCoop').textContent='Построен ✓';document.getElementById('buyCoop').disabled=true;update();log('построен курятник — теперь каждое утро +1 яйцо')};
+document.getElementById('sellAll').onclick=()=>{if(!harvest)return log('пока нечего продавать');let n=harvest;coins+=n*18;harvest=0;level=1+Math.floor(coins/250);update();log('продано '+n+' морковок за '+n*18+' монет')};
+document.getElementById('nextDay').onclick=()=>{day++;for(let k in plots){let p=plots[k];if(p.seed){if(p.watered){p.growth++;if(p.growth>=3)p.ready=true}p.watered=false}}if(coop){coins+=8;log('курятник принёс яйцо — продано за 8 монет')}log('наступил новый день');update();draw()};
+window.addEventListener('keydown',e=>{let moves={ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1],ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0]};let m=moves[e.key];if(m){e.preventDefault();player.x=Math.max(0,Math.min(9,player.x+m[0]));player.y=Math.max(0,Math.min(9,player.y+m[1]));draw()}});
+draw();update();
+</script>
+</body></html>
