@@ -1,104 +1,129 @@
-<!doctype html>
+from pathlib import Path
+
+html = r'''<!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FARM LIFE — прототип</title>
+<title>FARM LIFE — Pixel Frontier</title>
 <style>
-:root{--bg:#101712;--panel:#1b2920;--line:#344a38;--cream:#f3edda;--muted:#b6c5ad;--green:#9bd17c;--gold:#f1c66d}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#263b2a,#101712 65%);color:var(--cream);font:15px system-ui,Segoe UI,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #354735;background:#111b15dd;position:sticky;top:0;z-index:2}
-.logo{font-weight:900;letter-spacing:3px;color:var(--green);font-size:20px}.stats{display:flex;gap:10px;flex-wrap:wrap}.pill{background:#243629;border:1px solid var(--line);border-radius:20px;padding:7px 12px}
-main{max-width:1200px;margin:18px auto;padding:0 14px;display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px}
-.panel{background:#1a281f;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 35px #0004;overflow:hidden}
-.panel h2{font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0;padding:14px 16px;border-bottom:1px solid var(--line)}
-.world{padding:12px}.worldtop{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 5px 12px;color:var(--muted);font-size:13px}
-canvas{display:block;width:100%;max-height:650px;aspect-ratio:1.25;background:#7da66b;border-radius:12px;image-rendering:pixelated;touch-action:none}
-.controls{display:flex;gap:7px;flex-wrap:wrap;padding:12px 4px 2px}.btn{border:1px solid #4b684b;background:#293e2d;color:var(--cream);border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:650}.btn:hover{background:#38553b}.btn.active{background:#527b46;border-color:#a6d487}.btn:disabled{opacity:.4;cursor:not-allowed}
-.side{display:flex;flex-direction:column;gap:14px}.content{padding:14px}.big{font-size:25px;font-weight:850;color:var(--gold)}.muted{color:var(--muted);font-size:13px;line-height:1.45}.item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #304234}.item:last-child{border:0}.tag{font-size:12px;color:var(--muted)}.log{height:128px;overflow:auto;font-size:13px;color:var(--muted);line-height:1.55}.task{padding:9px 0;border-bottom:1px solid #304234}.bar{height:7px;background:#314333;border-radius:9px;overflow:hidden;margin-top:7px}.bar i{display:block;height:100%;background:var(--green);width:40%}
-footer{text-align:center;color:#849582;font-size:12px;padding:0 15px 20px}
-@media(max-width:800px){main{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.side .panel:last-child{grid-column:1/-1}}
-@media(max-width:520px){header{align-items:flex-start;gap:8px;flex-direction:column}.side{display:flex}.worldtop{align-items:flex-start;flex-direction:column}}
+:root{--ink:#e8eddb;--muted:#aab99f;--panel:#18231d;--panel2:#223127;--line:#405642;--lime:#b8e18b;--gold:#f4cb77}
+*{box-sizing:border-box}body{margin:0;background:#101813;color:var(--ink);font:14px ui-sans-serif,system-ui,Segoe UI,sans-serif}
+header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:#121d17;border-bottom:1px solid #334637;position:sticky;top:0;z-index:5}
+.brand{font-weight:1000;letter-spacing:3px;color:var(--lime);font-size:19px}.brand small{display:block;font-size:9px;letter-spacing:2px;color:#8ea48a;font-weight:700}
+.stats{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#223328;border:1px solid #3b5440;border-radius:9px;padding:8px 11px;font-weight:750}
+main{max-width:1400px;margin:18px auto;padding:0 16px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+.game{background:#19251d;border:1px solid #3a503d;border-radius:15px;overflow:hidden;box-shadow:0 18px 50px #0005}
+.gamehead{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid #344a37}.gamehead strong{letter-spacing:1.2px}.sub{font-size:12px;color:var(--muted)}
+.stage{padding:12px;background:#142018}.canvaswrap{position:relative;border:1px solid #56704c;border-radius:10px;overflow:hidden;background:#304e35}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;cursor:crosshair}
+.hint{position:absolute;left:12px;top:12px;padding:7px 10px;border-radius:8px;background:#132018d9;border:1px solid #58724d;color:#d9edc5;font-size:12px;pointer-events:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:7px;padding:12px 2px 3px}
+button{font:inherit;color:var(--ink);background:#293c2d;border:1px solid #526c4d;border-radius:8px;padding:9px 11px;font-weight:750;cursor:pointer;transition:.15s}
+button:hover{background:#38543a;transform:translateY(-1px)}button.active{background:#527c43;border-color:#b6df83;color:#fff}button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.side{display:flex;flex-direction:column;gap:13px}.card{background:#19251d;border:1px solid #3a503d;border-radius:13px;overflow:hidden}.card h3{margin:0;padding:13px 14px;border-bottom:1px solid #344a37;font-size:12px;letter-spacing:1.2px;color:#c5d3b8}.body{padding:12px 14px}
+.rowitem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #304333}.rowitem:last-child{border:0}.rowitem span{font-weight:650}.rowitem small{display:block;color:var(--muted);font-size:11px;font-weight:400;margin-top:2px}
+.rowitem button{padding:7px 9px;font-size:12px;white-space:nowrap}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin:9px 0 0}.metric{font-size:25px;color:var(--gold);font-weight:950}.progress{height:7px;background:#304334;border-radius:10px;overflow:hidden;margin:8px 0}.progress i{display:block;height:100%;background:linear-gradient(90deg,#8bc66b,#d1e68e);width:0}
+.log{max-height:105px;overflow:auto;font-size:12px;line-height:1.6;color:#b7c7ad}
+footer{text-align:center;color:#71836e;font-size:11px;padding:2px 15px 20px}
+@media(max-width:900px){main{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.side .card:last-child{grid-column:1/-1}}
+@media(max-width:560px){header{height:auto;padding:12px;align-items:flex-start;gap:10px;flex-direction:column}.side{display:flex}.stats{gap:5px}.chip{padding:6px 8px;font-size:12px}}
 </style>
 </head>
 <body>
-<header><div class="logo">🌱 FARM LIFE</div><div class="stats"><span class="pill">🪙 <b id="coins">120</b></span><span class="pill">⭐ Уровень <b id="level">1</b></span><span class="pill">📅 День <b id="day">1</b></span></div></header>
+<header><div class="brand">🌱 FARM LIFE <small>PIXEL FRONTIER · EARLY ACCESS</small></div><div class="stats"><span class="chip">🪙 <b id="coins">120</b></span><span class="chip">⭐ Ур. <b id="level">1</b></span><span class="chip">☀️ День <b id="day">1</b></span></div></header>
 <main>
-<section class="panel">
-<h2>Твоя ферма · Участок №001</h2><div class="world">
-<div class="worldtop"><span>Выбери инструмент и нажми на клетку</span><span>WASD / стрелки — движение персонажа</span></div>
-<canvas id="farm" width="800" height="640"></canvas>
-<div class="controls" id="tools">
-<button class="btn active" data-tool="hoe">⛏️ Вспахать</button><button class="btn" data-tool="seed">🌱 Посадить</button><button class="btn" data-tool="water">💧 Полить</button><button class="btn" data-tool="harvest">🧺 Собрать</button><button class="btn" data-tool="move">🚶 Персонаж</button>
-<button class="btn" id="nextDay">🌙 Следующий день</button>
-</div>
-<div class="muted" style="padding:10px 4px 0">Подсказка: вспаши землю → посади семена → поливай → переходи на следующий день. Созревший урожай можно продать на рынке.</div>
-</div></section>
+<section class="game">
+ <div class="gamehead"><div><strong>ЗЕЛЁНАЯ ДОЛИНА</strong><div class="sub">ТВОЙ УЧАСТОК · СЕЗОН ВЕСНЫ</div></div><div class="sub" id="weather">☀️ Ясно · 18°C</div></div>
+ <div class="stage"><div class="canvaswrap"><canvas id="world" width="960" height="640"></canvas><div class="hint">WASD / стрелки — ходить · клик — действие</div></div>
+ <div class="toolbar" id="tools">
+  <button class="active" data-tool="hoe">⛏ Вспахать</button><button data-tool="seed">🌱 Посадить</button><button data-tool="water">💧 Полить</button><button data-tool="harvest">🧺 Собрать</button><button data-tool="move">🧍 Ходить</button><button id="sleep">🌙 Спать до утра</button>
+ </div>
+ <div class="note">Совет: подготовь грядку, посади семена, полей их и переходи к следующему дню. Следи за ростом урожая.</div>
+ </div>
+</section>
 <aside class="side">
-<section class="panel"><h2>Семена и постройки</h2><div class="content">
-<div class="item"><span>🥕 Семена моркови <span class="tag">3 дня</span></span><button class="btn" id="buySeed">Купить · 10🪙</button></div>
-<div class="item"><span>🐔 Курятник <span class="tag">пассивный доход</span></span><button class="btn" id="buyCoop">80🪙</button></div>
-<div class="item"><span>🐄 Сарай <span class="tag">животные — скоро</span></span><button class="btn" disabled>120🪙</button></div>
-<div class="item"><span>🚜 Трактор <span class="tag">ускорение — скоро</span></span><button class="btn" disabled>250🪙</button></div>
-<p class="muted" id="inventory">В инвентаре: 2 семени</p>
-</div></section>
-<section class="panel"><h2>Рынок</h2><div class="content">
-<div class="item"><span>🥕 Морковь</span><b>18🪙</b></div><div class="item"><span>🥚 Яйцо</span><b>8🪙</b></div>
-<p class="muted">Цены условные для прототипа. В полной версии рынок будет общим для игроков.</p>
-<button class="btn" id="sellAll">Продать весь урожай</button><p class="muted" id="harvestCount">Урожай: 0</p>
-</div></section>
-<section class="panel"><h2>Задания дня</h2><div class="content">
-<div class="task">🌱 Посади 3 семени<div class="bar"><i id="taskbar"></i></div><span class="tag" id="tasktext">0 / 3</span></div>
-<div class="task">🧺 Собери первый урожай</div>
-<div class="task">🏆 Попади в рейтинг фермеров</div>
-</div></section>
-<section class="panel"><h2>Журнал фермы</h2><div class="content log" id="log">День 1 — добро пожаловать на ферму!<br>Твой участок ждёт первых посадок.</div></section>
+ <section class="card"><h3>🎒 ИНВЕНТАРЬ И МАГАЗИН</h3><div class="body">
+  <div class="rowitem"><span>🥕 Семена моркови<small>Созревание: 3 политых дня</small></span><button id="buySeed">10 🪙</button></div>
+  <div class="rowitem"><span>🐔 Курятник<small>Приносит монеты каждый день</small></span><button id="buyCoop">80 🪙</button></div>
+  <div class="rowitem"><span>🐄 Сарай<small>Новая постройка — позже</small></span><button disabled>120 🪙</button></div>
+  <div class="rowitem"><span>🚜 Трактор<small>Ускоряет обработку — позже</small></span><button disabled>250 🪙</button></div>
+  <p class="note" id="inventory">Семена: 2 · Урожай: 0</p>
+ </div></section>
+ <section class="card"><h3>🧺 ТОРГОВАЯ ПЛОЩАДЬ</h3><div class="body">
+  <div class="rowitem"><span>🥕 Морковь<small>Цена за штуку</small></span><b>18 🪙</b></div>
+  <div class="rowitem"><span>🥚 Яйцо<small>Доход курятника</small></span><b>8 🪙</b></div>
+  <button id="sell" style="width:100%;margin-top:8px">Продать урожай</button>
+  <p class="note" id="harvestCount">На складе: 0 моркови</p>
+ </div></section>
+ <section class="card"><h3>📜 ЗАДАНИЯ ФЕРМЕРА</h3><div class="body">
+  <b>Посади 3 семени</b><div class="progress"><i id="taskbar"></i></div><div class="sub" id="tasktext">0 / 3</div>
+  <p class="note">Следующая цель: собери первый урожай и продай его на рынке.</p>
+ </div></section>
+ <section class="card"><h3>📖 ДНЕВНИК</h3><div class="body log" id="log">День 1 — добро пожаловать в Зелёную долину!<br>Твой маленький участок ждёт заботы.</div></section>
 </aside>
 </main>
-<footer>FARM LIFE · ранний игровой прототип · прогресс хранится в этом браузере</footer>
+<footer>FARM LIFE · независимый игровой прототип · сохранение в браузере появится в следующей версии</footer>
 <script>
-const c=document.getElementById('farm'),ctx=c.getContext('2d');
-const N=10, cell=58, ox=105, oy=30;
-let coins=120,day=1,seeds=2,harvest=0,level=1,coop=false,tool='hoe',player={x:4,y:7},plots={},planted=0;
-const key=(x,y)=>x+','+y;
-function log(t){let el=document.getElementById('log');el.innerHTML='День '+day+' — '+t+'<br>'+el.innerHTML}
-function update(){document.getElementById('coins').textContent=coins;document.getElementById('day').textContent=day;document.getElementById('level').textContent=level;document.getElementById('inventory').textContent='В инвентаре: '+seeds+' семени';document.getElementById('harvestCount').textContent='Урожай: '+harvest;document.getElementById('tasktext').textContent=Math.min(planted,3)+' / 3';document.getElementById('taskbar').style.width=Math.min(planted/3*100,100)+'%'}
+const cv=document.getElementById('world'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;
+const tile=48,cols=20,rows=13,worldW=cols*tile,worldH=rows*tile;
+let coins=120,day=1,seeds=2,crops=0,level=1,coop=false,tool='hoe',planted=0,player={x:9.5,y:8.5},plots={};
+const solid=new Set(),decor=[];
+function rnd(n){return Math.abs(Math.sin(n*127.1+311.7)*43758.5453)%1}
+function log(s){let e=document.getElementById('log');e.innerHTML='День '+day+' — '+s+'<br>'+e.innerHTML}
+function ui(){document.getElementById('coins').textContent=coins;document.getElementById('day').textContent=day;level=1+Math.floor((120-coins+Math.max(0,coins-120)+crops*18)/250);document.getElementById('level').textContent=level;document.getElementById('inventory').textContent='Семена: '+seeds+' · Урожай: '+crops;document.getElementById('harvestCount').textContent='На складе: '+crops+' моркови';document.getElementById('tasktext').textContent=Math.min(planted,3)+' / 3';document.getElementById('taskbar').style.width=Math.min(100,planted/3*100)+'%'}
+function rect(x,y,w,h,c){g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
+function ellipse(x,y,rx,ry,c){g.fillStyle=c;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill()}
+function tree(x,y,s=1){rect(x-7*s,y+7*s,14*s,24*s,'#795034');ellipse(x,y,22*s,20*s,'#315d3b');ellipse(x-12*s,y-5*s,14*s,14*s,'#477a46');ellipse(x+12*s,y-7*s,14*s,15*s,'#3d7042');rect(x-14*s,y-11*s,5*s,4*s,'#78a85a')}
+function rock(x,y){ellipse(x,y,13,9,'#777f70');rect(x-7,y-8,11,5,'#a5aa91');rect(x+4,y-2,5,4,'#626d62')}
 function draw(){
- ctx.clearRect(0,0,c.width,c.height);
- // grass tiles
- for(let y=0;y<N;y++)for(let x=0;x<N;x++){let px=ox+x*cell,py=oy+y*cell;ctx.fillStyle=(x+y)%2?'#83ad70':'#8db879';ctx.fillRect(px,py,cell,cell);ctx.strokeStyle='#719b62';ctx.strokeRect(px,py,cell,cell);
- if((x===0||x===9||y===0||y===9)&&!(x===0&&y===5)){ctx.fillStyle='#54834f';ctx.fillRect(px+4,py+4,cell-8,cell-8);ctx.fillStyle='#9dc47b';ctx.fillRect(px+10,py+8,5,5)}
- }
- // path
- for(let x=2;x<8;x++){ctx.fillStyle='#c4a878';ctx.fillRect(ox+x*cell,oy+8*cell,cell,cell)}
- // pond
- ctx.fillStyle='#4d9ca0';ctx.fillRect(ox+7*cell,oy,cell*2,cell*2);ctx.fillStyle='#77c4bd';ctx.fillRect(ox+7*cell+8,oy+12,35,5);
- // house and barn
- ctx.fillStyle='#ead8a8';ctx.fillRect(ox+cell*1.0,oy+cell*1.1,cell*1.8,cell*1.35);ctx.fillStyle='#a65345';ctx.beginPath();ctx.moveTo(ox+cell*.8,oy+cell*1.15);ctx.lineTo(ox+cell*1.9,oy+cell*.35);ctx.lineTo(ox+cell*3,oy+cell*1.15);ctx.fill();ctx.fillStyle='#754d35';ctx.fillRect(ox+cell*1.65,oy+cell*1.65,24,45);
- ctx.fillStyle='#d8c18b';ctx.fillRect(ox+cell*5.7,oy+cell*1.2,cell*1.1,cell*1.1);ctx.fillStyle='#984d3f';ctx.beginPath();ctx.moveTo(ox+cell*5.5,oy+cell*1.2);ctx.lineTo(ox+cell*6.25,oy+cell*.55);ctx.lineTo(ox+cell*7,oy+cell*1.2);ctx.fill();ctx.fillStyle='#744b36';ctx.fillRect(ox+cell*6,oy+cell*1.65,25,38);
- // crops
- for(let k in plots){let [x,y]=k.split(',').map(Number),p=plots[k],px=ox+x*cell,py=oy+y*cell;ctx.fillStyle='#795b39';ctx.fillRect(px+4,py+4,cell-8,cell-8);ctx.strokeStyle='#a88355';for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(px+9,py+15+i*14);ctx.lineTo(px+cell-9,py+15+i*14);ctx.stroke()}
- if(p.seed){ctx.fillStyle=p.ready?'#e9a83c':'#4d9a48';for(let i=0;i<(p.ready?4:Math.max(1,p.growth+1));i++){ctx.beginPath();ctx.ellipse(px+18+i*9,py+30,5,10,-.4,0,Math.PI*2);ctx.fill()}if(p.ready){ctx.fillStyle='#f5d16a';ctx.font='20px sans-serif';ctx.fillText('🥕',px+17,py+28)}}
- if(p.watered){ctx.fillStyle='#80c9e8';ctx.beginPath();ctx.arc(px+cell-12,py+12,4,0,Math.PI*2);ctx.fill()}
- }
- // player
- let px=ox+player.x*cell+cell/2,py=oy+player.y*cell+cell/2;ctx.fillStyle='#344a9a';ctx.beginPath();ctx.arc(px,py+5,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f0c69a';ctx.beginPath();ctx.arc(px,py-11,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#4a3325';ctx.fillRect(px-9,py-21,18,6);
- // selection
- ctx.strokeStyle='#fff3a4';ctx.lineWidth=3;ctx.strokeRect(ox+player.x*cell+2,oy+player.y*cell+2,cell-4,cell-4);ctx.lineWidth=1;
+ g.clearRect(0,0,cv.width,cv.height);
+ // camera follows player
+ let camX=Math.max(0,Math.min(worldW-cv.width,player.x*tile-cv.width/2)),camY=Math.max(0,Math.min(worldH-cv.height,player.y*tile-cv.height/2));
+ g.save();g.translate(-camX,-camY);
+ // grass texture
+ for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){let X=x*tile,Y=y*tile;rect(X,Y,tile,tile,(x+y)%2?'#719b59':'#7da965');for(let j=0;j<5;j++){let px=X+rnd(x*31+y*7+j)*tile,py=Y+rnd(y*43+x*3+j+9)*tile;rect(px,py,2,4,'#91b974')}}
+ // paths and river
+ for(let x=0;x<cols;x++){if(x>2&&x<18){rect(x*tile,10*tile,tile,tile,'#b99a68');rect(x*tile,10*tile,tile,4,'#d0b17b')}}
+ for(let y=0;y<5;y++){let x=16*tile+Math.sin(y*.9)*12;rect(x,y*tile,4*tile,tile,'#438e91');rect(x+8,y*tile+8,28,3,'#78c6bb');rect(x+75,y*tile+29,20,3,'#78c6bb')}
+ // fence edges
+ for(let x=0;x<cols;x++){if(x<15||x>18){rect(x*tile,0, tile,8,'#a17b4d');rect(x*tile+5,0,5,13,'#d0ad72')}rect(x*tile,worldH-9,tile,8,'#a17b4d')}
+ for(let y=0;y<rows;y++){rect(0,y*tile,8,tile,'#a17b4d');rect(worldW-8,y*tile,8,tile,'#a17b4d')}
+ // trees and rocks, fixed clear central farmyard
+ for(let i=0;i<44;i++){let x=1+Math.floor(rnd(i+2)*18),y=1+Math.floor(rnd(i+80)*10);if((x<8&&y<5)||(x>14&&y<5)||(x>4&&x<15&&y>6&&y<10))continue;tree(x*tile+24,y*tile+26,.75+rnd(i+99)*.35)}
+ for(let i=0;i<15;i++){let x=1+Math.floor(rnd(i+220)*18),y=1+Math.floor(rnd(i+290)*10);if(y>6&&y<10&&x>4&&x<15)continue;rock(x*tile+24,y*tile+28)}
+ // farmhouse
+ rect(2*tile,2*tile,3*tile,2*tile,'#dfc78d');rect(2*tile-9,2*tile-12,3*tile+18,18,'#8f4e43');rect(3*tile+5,3*tile+12,24,36,'#65432e');rect(2*tile+14,2*tile+18,22,18,'#8dc4c2');rect(4*tile+10,2*tile+18,22,18,'#8dc4c2');
+ // barn
+ rect(10*tile,2*tile,3*tile,2*tile,'#b75d4d');rect(10*tile-8,2*tile-12,3*tile+16,18,'#713d3b');rect(11*tile+20,3*tile+35,42,36,'#6b3c32');rect(10*tile+15,2*tile+20,24,20,'#f0d9a1');
+ // plots
+ for(let k in plots){let [x,y]=k.split(',').map(Number),p=plots[k],X=x*tile,Y=y*tile;rect(X+2,Y+2,tile-4,tile-4,'#795839');for(let z=0;z<3;z++)rect(X+5,Y+12+z*12,tile-10,3,'#a47b4e');if(p.seed){let n=p.ready?5:p.growth+1;for(let z=0;z<n;z++){ellipse(X+12+z*6,Y+30,4,9,p.ready?'#e7a63e':'#4d9345');ellipse(X+8+z*6,Y+23,4,5,'#78b75a')}if(p.ready){rect(X+27,Y+13,7,19,'#f1b83f');rect(X+29,Y+9,4,8,'#4e8d42')}}if(p.watered){ellipse(X+tile-10,Y+9,4,3,'#8ed2e4')}}
+ // chicken pen if bought
+ if(coop){rect(6*tile,3*tile,2*tile,2*tile,'#b58b58');for(let i=0;i<3;i++){ellipse(6*tile+25+i*22,4*tile+10,8,7,'#f2ead2');ellipse(6*tile+30+i*22,4*tile+6,3,3,'#d6a64b')}}
+ // little flowers
+ for(let i=0;i<24;i++){let x=(i*73%worldW),y=(i*47%worldH);if(y>6*tile&&y<10*tile&&x>4*tile&&x<15*tile)continue;ellipse(x,y,2,2,i%2?'#f5d68c':'#f2e5d0')}
+ // player pixel sprite
+ let px=player.x*tile,py=player.y*tile;rect(px-9,py-4,18,17,'#39549a');rect(px-7,py-17,14,14,'#edbd91');rect(px-8,py-20,16,5,'#563c2b');rect(px-7,py+12,5,8,'#594333');rect(px+3,py+12,5,8,'#594333');rect(px-5,py-9,3,3,'#49362c');rect(px+3,py-9,3,3,'#49362c');
+ g.restore();
 }
-function act(x,y){if(x<0||x>=N||y<0||y>=N)return;let k=key(x,y),p=plots[k];if(tool==='move'){player={x,y};draw();return}
- if(tool==='hoe'){if(!p){plots[k]={seed:false,growth:0,watered:false};log('земля вспахана')}else log('здесь уже подготовлена грядка')}
- if(tool==='seed'){if(!p){log('сначала вспаши землю');return}if(p.seed){log('здесь уже что-то растёт');return}if(seeds<1){log('не хватает семян');return}p.seed=true;seeds--;planted++;log('семена посажены');}
+function click(e){let r=cv.getBoundingClientRect(),sx=(e.clientX-r.left)*cv.width/r.width,sy=(e.clientY-r.top)*cv.height/r.height;let camX=Math.max(0,Math.min(worldW-cv.width,player.x*tile-cv.width/2)),camY=Math.max(0,Math.min(worldH-cv.height,player.y*tile-cv.height/2));let x=Math.floor((sx+camX)/tile),y=Math.floor((sy+camY)/tile),k=x+','+y,p=plots[k];if(tool==='move'){player={x:x+.5,y:y+.5};draw();return}
+ if(x<1||x>18||y<1||y>11)return;
+ if(tool==='hoe'){if(!p){plots[k]={seed:false,growth:0,watered:false};log('подготовлена грядка')}else log('грядка уже подготовлена')}
+ if(tool==='seed'){if(!p){log('сначала вспаши землю');return}if(p.seed){log('здесь уже растёт урожай');return}if(!seeds){log('нет семян — купи их в магазине');return}p.seed=true;seeds--;planted++;log('морковь посажена')}
  if(tool==='water'){if(!p||!p.seed){log('здесь нечего поливать');return}p.watered=true;log('грядка полита')}
- if(tool==='harvest'){if(!p||!p.ready){log('урожай ещё не созрел');return}harvest++;delete plots[k];log('морковь собрана')}
- update();draw()
+ if(tool==='harvest'){if(!p||!p.ready){log('морковь ещё не созрела');return}crops++;delete plots[k];log('собрана морковь')}
+ ui();draw()
 }
-c.addEventListener('click',e=>{let r=c.getBoundingClientRect(),x=Math.floor(((e.clientX-r.left)*c.width/r.width-ox)/cell),y=Math.floor(((e.clientY-r.top)*c.height/r.height-oy)/cell);act(x,y)});
-document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{tool=b.dataset.tool;document.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b))});
-document.getElementById('buySeed').onclick=()=>{if(coins<10)return log('не хватает монет');coins-=10;seeds++;update();log('куплены семена моркови')};
-document.getElementById('buyCoop').onclick=()=>{if(coop)return log('курятник уже построен');if(coins<80)return log('не хватает монет');coins-=80;coop=true;document.getElementById('buyCoop').textContent='Построен ✓';document.getElementById('buyCoop').disabled=true;update();log('построен курятник — теперь каждое утро +1 яйцо')};
-document.getElementById('sellAll').onclick=()=>{if(!harvest)return log('пока нечего продавать');let n=harvest;coins+=n*18;harvest=0;level=1+Math.floor(coins/250);update();log('продано '+n+' морковок за '+n*18+' монет')};
-document.getElementById('nextDay').onclick=()=>{day++;for(let k in plots){let p=plots[k];if(p.seed){if(p.watered){p.growth++;if(p.growth>=3)p.ready=true}p.watered=false}}if(coop){coins+=8;log('курятник принёс яйцо — продано за 8 монет')}log('наступил новый день');update();draw()};
-window.addEventListener('keydown',e=>{let moves={ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1],ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0]};let m=moves[e.key];if(m){e.preventDefault();player.x=Math.max(0,Math.min(9,player.x+m[0]));player.y=Math.max(0,Math.min(9,player.y+m[1]));draw()}});
-draw();update();
+cv.addEventListener('click',click);
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{tool=b.dataset.tool;document.querySelectorAll('[data-tool]').forEach(q=>q.classList.toggle('active',q===b))});
+document.getElementById('buySeed').onclick=()=>{if(coins<10){log('не хватает монет');return}coins-=10;seeds++;ui();log('куплены семена')};
+document.getElementById('buyCoop').onclick=()=>{if(coop)return;if(coins<80){log('не хватает монет');return}coins-=80;coop=true;document.getElementById('buyCoop').textContent='Куплен ✓';document.getElementById('buyCoop').disabled=true;ui();draw();log('построен курятник — он приносит 8 монет в день')};
+document.getElementById('sell').onclick=()=>{if(!crops){log('на складе пока пусто');return}let n=crops;crops=0;coins+=n*18;ui();log('продано '+n+' моркови за '+n*18+' монет')};
+document.getElementById('sleep').onclick=()=>{day++;for(let k in plots){let p=plots[k];if(p.seed&&p.watered){p.growth++;if(p.growth>=3)p.ready=true}p.watered=false}if(coop)coins+=8;ui();draw();log(coop?'курятник принёс 8 монет':'наступил новый день')};
+window.addEventListener('keydown',e=>{let m={ArrowUp:[0,-.35],w:[0,-.35],ArrowDown:[0,.35],s:[0,.35],ArrowLeft:[-.35,0],a:[-.35,0],ArrowRight:[.35,0],d:[.35,0]}[e.key];if(m){e.preventDefault();player.x=Math.max(1,Math.min(18,player.x+m[0]));player.y=Math.max(1,Math.min(11,player.y+m[1]));draw()}});
+ui();draw();
 </script>
-</body></html>
+</body></html>'''
+p=Path("/mnt/data/index.html")
+p.write_text(html, encoding="utf-8")
+print(f"Готово: {p.name}, {p.stat().st_size} байт")
